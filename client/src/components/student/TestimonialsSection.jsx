@@ -26,7 +26,7 @@ const TestimonialsSection = () => {
                   <img className="h-5" key={i} src={ i < Math.floor(testimonial.rating) ? assets.star : assets.star_blank } alt="star"/>
                 ))}
               </div>
-              <p className="text-gray-600 mt-5 leading-relaxed">{testimonial.feedback}</p>
+              <p className="text-gray-600 mt-5 leading-relaxed ">{testimonial.feedback}</p>
             </div>
             <a href="#" className="text-blue-500 font-medium underline px-5 block">Read more</a>
           </div>
