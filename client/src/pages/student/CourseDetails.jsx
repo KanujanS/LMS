@@ -61,9 +61,6 @@ const CourseDetails = () => {
           </div>
         </div>
       </div>
-
-
-
       {/*right column*/}
       <div></div>
     </div>
