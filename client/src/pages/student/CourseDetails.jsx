@@ -25,7 +25,7 @@ const CourseDetails = () => {
 
   useEffect(()=>{
     fetchCourseData()
-  },[])
+  },[allCourses])
 
   const toggleSection = (index) =>{
     setOpenSections((prev)=>(
@@ -55,7 +55,7 @@ const CourseDetails = () => {
                       {[...Array(5)].map((_,i)=>(<img key={i} src={i < Math.floor(calculateRating(courseData)) ? assets.star : assets.star_blank} alt='' className='w-3.5 h-3.5'/>))}
                     </div>
                     <p className='text-blue-600'>({courseData.courseRatings.length} {courseData.courseRatings.length > 1 ? 'ratings' : 'rating'})</p>
-                    <p>{courseData.enrolledStudents.length}{courseData.enrolledStudents.length > 1 ? 'student' : 'students'}</p>
+                    <p>{courseData.enrolledStudents.length}{courseData.enrolledStudents.length > 1 ? ' students' : ' student'}</p>
                   </div>
         <p className='text-sm'>Course by <span className='text-blue-600 underline'>Kanujan</span></p>
         <div className='pt-8 text-gray-800'>
@@ -98,7 +98,7 @@ const CourseDetails = () => {
 
 
       {/*right column*/}
-      <div className='max-w-[424px] z-10 shadow-[0px_4px_15px_2px_rgba(0,0,0,0.1)] rounded-t md:rounded-none overflow-hidden bg-white min-w-[300px] sm:min-w-[420px] mr-15'>
+      <div className='max-w-[424px] z-10 shadow-[0px_4px_15px_2px_rgba(0,0,0,0.1)] rounded-t md:rounded-none overflow-hidden bg-white min-w-[300px] sm:min-w-[420px] '>
         {
           playerData ? <YouTube videoId={playerData.videoId} opts={{playerVars:{autoplay:1}}} iframeClassName='w-full aspect-video'/> : <img src={courseData.courseThumbnail} alt="Thumbnail" />
         }
