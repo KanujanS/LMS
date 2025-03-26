@@ -60,7 +60,7 @@ const CourseDetails = () => {
         <p className='text-sm'>Course by <span className='text-blue-600 underline'>Kanujan</span></p>
         <div className='pt-8 text-gray-800'>
           <h2 className='text-xl font-semibold'>Course structure</h2>
-          <div>
+          <div className='pt-5'>
             {courseData.courseContent.map((chapter, index) => (
               <div key={index} className='border border-gray-300 bg-white mb-2 rounded'>
                 <div className='flex items-center justify-between px-4 py-3 cursor-pointer select-none' onClick={()=>toggleSection(index)}>
