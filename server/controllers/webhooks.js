@@ -1,7 +1,6 @@
 import { Webhook } from "svix";
 import User from "../models/user.js";
 import Stripe from "stripe";
-import { request, response } from "express";
 import { Purchase } from "../models/Purchase.js";
 import Course from "../models/Course.js";
 
@@ -104,7 +103,7 @@ export const stripeWebhooks = async(request, response)=>{
         const purchaseData = await Purchase.findById(purchaseId)
         purchaseData.status = 'failed'
         await purchaseData.save()
-        
+
         break;}
       // ... handle other event types
       default:
