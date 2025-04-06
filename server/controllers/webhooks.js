@@ -93,6 +93,7 @@ export const stripeWebhooks = async(request, response)=>{
         await purchaseData.save()
 
         break;}
+        
       case 'payment_intent.payment_failed':{
         const paymentIntent = event.data.object;
         const paymentIntentId = paymentIntent.id;
