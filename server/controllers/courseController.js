@@ -1,7 +1,7 @@
 import Course from "../models/Course.js";
 
 // Get all courses
-export const getAllCourse = async (req, res) => {
+export const getAllCourse = async (res) => {
   try {
     const courses = await Course.find({ isPublished: true })
       .select(["-courseContent", "-enrolledStudents"])
