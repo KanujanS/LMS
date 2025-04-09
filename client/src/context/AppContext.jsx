@@ -1,5 +1,4 @@
 import { createContext, useEffect, useState } from "react";
-import { dummyCourses } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 import humanizeDuration from "humanize-duration";
 import { useAuth, useUser } from "@clerk/clerk-react";
@@ -74,16 +73,20 @@ export const AppContextProvider = (props) => {
   // Function to calculate course chapter time
   const calculateChapterTime = (chapter) => {
     let time = 0;
-    chapter.chapterContent.map((lecture) => (time += lecture.lectureDuration));
+    if (Array.isArray(chapter.chapterContent)) {
+      chapter.chapterContent.forEach((lecture) => (time += lecture.lectureDuration));
+    }
     return humanizeDuration(time * 60 * 1000, { units: ["h", "m"] });
   };
 
   // Function to calculate the course duration
   const calculateCourseDuration = (course) => {
     let time = 0;
-    course.courseContent.map((chapter) =>
-      chapter.chapterContent.map((lecture) => (time += lecture.lectureDuration))
-    );
+    course.courseContent.forEach((chapter) => {
+      if (Array.isArray(chapter.chapterContent)) {
+        chapter.chapterContent.forEach((lecture) => (time += lecture.lectureDuration));
+      }
+    });
     return humanizeDuration(time * 60 * 1000, { units: ["h", "m"] });
   };
 
