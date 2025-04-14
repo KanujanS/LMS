@@ -5,9 +5,8 @@
         "src": "server.js",
         "use": "@vercel/node",
         "config": {
-          "includeFiles" :[
-            "dist/**"
-          ]
+          "includeFiles": ["**/*"],
+          "nodeVersion": "18.x"
         }
       }
     ],
@@ -16,5 +15,8 @@
         "src": "/(.*)",
         "dest": "server.js"
       }
-    ]
+    ],
+    "env": {
+      "NODE_ENV": "production"
+    }
   }
