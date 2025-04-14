@@ -34,6 +34,21 @@ export const addCourse = async (req, res) => {
 
     const parsedCourseData = await JSON.parse(courseData);
     parsedCourseData.educator = educatorId;
+
+    // Process course content to add required fields
+    if (Array.isArray(parsedCourseData.courseContent)) {
+      parsedCourseData.courseContent.forEach((chapter, chapterIndex) => {
+        if (Array.isArray(chapter.chapterContent)) {
+          chapter.chapterContent.forEach((lecture, lectureIndex) => {
+            // Generate lectureId using chapter and lecture index
+            lecture.lectureId = `${chapterIndex + 1}-${lectureIndex + 1}-${Date.now()}`;
+            // Set lectureOrder based on index
+            lecture.lectureOrder = lectureIndex + 1;
+          });
+        }
+      });
+    }
+
     const newCourse = await Course.create(parsedCourseData);
     const imageUpload = await cloudinary.uploader.upload(imageFile.path);
     newCourse.courseThumbnail = imageUpload.secure_url;

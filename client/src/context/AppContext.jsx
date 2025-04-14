@@ -124,10 +124,21 @@ export const AppContextProvider = (props) => {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      fetchUserData();
-      fetchUserEnrolledCourses();
-    }
+    const initializeUserData = async () => {
+      if (user) {
+        try {
+          await Promise.all([
+            fetchUserData(),
+            fetchUserEnrolledCourses()
+          ]);
+        } catch (error) {
+          console.error('Error initializing user data:', error);
+          toast.error('Failed to load user data. Please refresh the page.');
+        }
+      }
+    };
+    
+    initializeUserData();
   }, [user]);
 
   const value = {
@@ -147,6 +158,7 @@ export const AppContextProvider = (props) => {
     setUserData,
     getToken,
     fetchAllCourses,
+    fetchUserData, // Add fetchUserData to the context value
   };
 
   return (
