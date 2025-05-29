@@ -1,5 +1,7 @@
 import express from "express";
 import {
+  register,
+  login,
   addUserRating,
   getUserCourseProgress,
   getUserData,
@@ -7,14 +9,20 @@ import {
   updateUserCourseProgress,
   userEnrolledCourses,
 } from "../controllers/userController.js";
+import { protect } from "../middlewares/authMiddleware.js";
 
 const userRouter = express.Router();
 
-userRouter.get("/data", getUserData);
-userRouter.get("/enrolled-courses", userEnrolledCourses);
-userRouter.post("/purchase", purchaseCourse);
-userRouter.post("/update-course-progress", updateUserCourseProgress);
-userRouter.post("/get-course-progress", getUserCourseProgress);
-userRouter.post("/add-rating", addUserRating);
+// Auth routes
+userRouter.post("/register", register);
+userRouter.post("/login", login);
+
+// Protected routes
+userRouter.get("/data", protect, getUserData);
+userRouter.get("/enrolled-courses", protect, userEnrolledCourses);
+userRouter.post("/purchase", protect, purchaseCourse);
+userRouter.post("/update-course-progress", protect, updateUserCourseProgress);
+userRouter.post("/get-course-progress", protect, getUserCourseProgress);
+userRouter.post("/add-rating", protect, addUserRating);
 
 export default userRouter;

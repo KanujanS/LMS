@@ -3,7 +3,7 @@ import uniqid from 'uniqid'
 import Quill from 'quill'
 import { assets } from "../../assets/assets";
 import { AppContext } from "../../context/AppContext";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import axios from "axios";
 
 const AddCourse = () => {

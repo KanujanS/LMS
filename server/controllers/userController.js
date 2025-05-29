@@ -3,11 +3,107 @@ import Stripe from "stripe";
 import Course from "../models/Course.js";
 import { Purchase } from "../models/Purchase.js";
 import { CourseProgress } from "../models/CourseProgress.js";
+import jwt from "jsonwebtoken";
+import { config } from "dotenv";
+
+config();
+
+// Register user
+export const register = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "User already exists" 
+      });
+    }
+
+    // Create new user with MongoDB ObjectId
+    const user = new User({
+      name,
+      email,
+      password,
+      imageUrl: "https://www.gravatar.com/avatar/?d=mp"
+    });
+    await user.save();
+
+    // Generate token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(201).json({
+      success: true,
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        imageUrl: user.imageUrl,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Login user
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid credentials" 
+      });
+    }
+
+    // Check password
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid credentials" 
+      });
+    }
+
+    // Generate token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        imageUrl: user.imageUrl,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // Get user data
 export const getUserData = async (req, res) => {
   try {
-    const userId = req.auth.userId;
+    const userId = req.user._id;
     const user = await User.findById(userId);
 
     if (!user) {
@@ -22,7 +118,7 @@ export const getUserData = async (req, res) => {
 // Users enrolled courses with lecture links
 export const userEnrolledCourses = async (req, res) => {
   try {
-    const userId = req.auth.userId;
+    const userId = req.user._id;
     const userData = await User.findById(userId).populate("enrolledCourses");
 
     res.json({ success: true, enrolledCourses: userData.enrolledCourses });
@@ -36,7 +132,7 @@ export const purchaseCourse = async (req, res) => {
   try {
     const { courseId } = req.body;
     const { origin } = req.headers;
-    const userId = req.auth.userId;
+    const userId = req.user._id;
     const userData = await User.findById(userId);
     const courseData = await Course.findById(courseId);
 
@@ -94,7 +190,7 @@ export const purchaseCourse = async (req, res) => {
 // Update user course progress
 export const updateUserCourseProgress = async (req, res) => {
   try {
-    const userId = req.auth.userId;
+    const userId = req.user._id;
     const { courseId, lectureId } = req.body;
     const progressData = await CourseProgress.findOne({ userId, courseId });
 
@@ -124,7 +220,7 @@ export const updateUserCourseProgress = async (req, res) => {
 // Get user course progress
 export const getUserCourseProgress = async (req, res) => {
   try {
-    const userId = req.auth.userId;
+    const userId = req.user._id;
     const { courseId } = req.body;
     const progressData = await CourseProgress.findOne({ userId, courseId });
     res.json({ success: true, progressData });

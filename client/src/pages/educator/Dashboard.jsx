@@ -3,18 +3,17 @@ import { AppContext } from '../../context/AppContext'
 import { assets, dummyDashboardData } from '../../assets/assets'
 import Loading from '../../components/student/Loading'
 import axios from 'axios'
-import { toast } from 'react-toastify'
+import { toast } from 'react-hot-toast'
 
 const Dashboard = () => {
 
-  const { currency, backendUrl, isEducator, getToken } = useContext(AppContext)
-
+  const { currency, backendUrl } = useContext(AppContext)
+  const [ loading, setLoading ] = useState(true)
   const [ dashboardData, setDashboardData ] = useState(null)
 
   const fetchDashboardData = async () => {
     try {
-      const token = await getToken()
-      const { data } = await axios.get(backendUrl + '/api/educator/dashboard', {headers: {Authorization: `Bearer ${token}`}})
+      const { data } = await axios.get(backendUrl + '/api/educator/dashboard')
 
       if (data.success) {
         setDashboardData(data.dashboardData)
@@ -22,17 +21,26 @@ const Dashboard = () => {
         toast.error(data.message)
       }
     } catch (error) {
-      toast.error(error.message)
+      console.error('Dashboard error:', error)
+      toast.error(error.response?.data?.message || 'Failed to load dashboard')
+    } finally {
+      setLoading(false)
     }
   }
 
-  useEffect (() => {
-    if (isEducator) {
-      fetchDashboardData()
-    }
-  },[isEducator])
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
 
-  return dashboardData ? (
+  if (loading) {
+    return <Loading />
+  }
+
+  if (!dashboardData) {
+    return <div className="p-4">Failed to load dashboard data</div>
+  }
+
+  return (
     <div className='min-h-screen flex flex-col items-start justify-between gap-8 md:p-8 md:pb-0 p-4 pt-8 pb-0'>
       <div className='space-y-5'>
         <div className='flex flex-wrap gap-5 items-center'>
@@ -86,7 +94,7 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
-  ) : <Loading/>
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

@@ -1,5 +1,5 @@
-import logo from './logo.svg'
-import logo_dark from './logo_dark.svg'
+import logo from './logo.png'
+import logo_dark from './logo_dark.png'
 import search_icon from './search_icon.svg'
 import cross_icon from './cross_icon.svg'
 import upload_area from './upload_area.svg'
@@ -95,7 +95,7 @@ export const dummyEducatorData = {
     "_id": "675ac1512100b91a6d9b8b24",
     "name": "GreatStack",
     "email": "user.greatstack@gmail.com",
-    "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18yclFkaDBOMmFqWnBoTTRBOXZUanZxVlo0aXYifQ",
+    "imageUrl": "https://www.gravatar.com/avatar/?d=mp",
     "createdAt": "2024-12-12T10:56:17.930Z",
     "updatedAt": "2024-12-12T10:56:17.930Z",
     "__v": 0
@@ -131,41 +131,41 @@ export const dummyDashboardData = {
         {
             "courseTitle": "Introduction to JavaScript",
             "student": {
-                "_id": "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
+                "_id": "6473a1f5e4b0c3001f123456",
                 "name": "Great Stack",
-                "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ycVFsdmFMSkw3ckIxNHZMU2o4ZURWNEtmR2IifQ"
+                "imageUrl": "https://www.gravatar.com/avatar/?d=mp"
             }
         },
         {
             "courseTitle": "Advanced Python Programming",
             "student": {
-                "_id": "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
+                "_id": "6473a1f5e4b0c3001f123456",
                 "name": "Great Stack",
-                "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ycVFsdmFMSkw3ckIxNHZMU2o4ZURWNEtmR2IifQ"
+                "imageUrl": "https://www.gravatar.com/avatar/?d=mp"
             }
         },
         {
             "courseTitle": "Web Development Bootcamp",
             "student": {
-                "_id": "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
+                "_id": "6473a1f5e4b0c3001f123456",
                 "name": "Great Stack",
-                "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ycVFsdmFMSkw3ckIxNHZMU2o4ZURWNEtmR2IifQ"
+                "imageUrl": "https://www.gravatar.com/avatar/?d=mp"
             }
         },
         {
             "courseTitle": "Data Science with Python",
             "student": {
-                "_id": "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
+                "_id": "6473a1f5e4b0c3001f123456",
                 "name": "Great Stack",
-                "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ycVFsdmFMSkw3ckIxNHZMU2o4ZURWNEtmR2IifQ"
+                "imageUrl": "https://www.gravatar.com/avatar/?d=mp"
             }
         },
         {
             "courseTitle": "Cybersecurity Basics",
             "student": {
-                "_id": "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
+                "_id": "6473a1f5e4b0c3001f123456",
                 "name": "Great Stack",
-                "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ycVFsdmFMSkw3ckIxNHZMU2o4ZURWNEtmR2IifQ"
+                "imageUrl": "https://www.gravatar.com/avatar/?d=mp"
             }
         }
     ],
@@ -175,36 +175,36 @@ export const dummyDashboardData = {
 export const dummyStudentEnrolled = [
     {
         "student": {
-            "_id": "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
+            "_id": "6473a1f5e4b0c3001f123456",
             "name": "GreatStack",
-            "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ycVFsdmFMSkw3ckIxNHZMU2o4ZURWNEtmR2IifQ"
+            "imageUrl": "https://www.gravatar.com/avatar/?d=mp"
         },
         "courseTitle": "Introduction to JavaScript",
         "purchaseDate": "2024-12-20T08:39:55.509Z"
     },
     {
         "student": {
-            "_id": "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
+            "_id": "6473a1f5e4b0c3001f123456",
             "name": "GreatStack",
-            "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ycVFsdmFMSkw3ckIxNHZMU2o4ZURWNEtmR2IifQ"
+            "imageUrl": "https://www.gravatar.com/avatar/?d=mp"
         },
         "courseTitle": "Introduction to JavaScript",
         "purchaseDate": "2024-12-20T08:59:49.964Z"
     },
     {
         "student": {
-            "_id": "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
+            "_id": "6473a1f5e4b0c3001f123456",
             "name": "GreatStack",
-            "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ycVFsdmFMSkw3ckIxNHZMU2o4ZURWNEtmR2IifQ"
+            "imageUrl": "https://www.gravatar.com/avatar/?d=mp"
         },
         "courseTitle": "Advanced Python Programming",
         "purchaseDate": "2024-12-20T11:03:42.931Z"
     },
     {
         "student": {
-            "_id": "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
+            "_id": "6473a1f5e4b0c3001f123456",
             "name": "GreatStack",
-            "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ycVFsdmFMSkw3ckIxNHZMU2o4ZURWNEtmR2IifQ"
+            "imageUrl": "https://www.gravatar.com/avatar/?d=mp"
         },
         "courseTitle": "Web Development Bootcamp",
         "purchaseDate": "2024-12-20T11:04:48.798Z"
@@ -269,13 +269,13 @@ export const dummyCourses = [
         ],
         "educator": "675ac1512100b91a6d9b8b24",
         "enrolledStudents": [
-            "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
-            "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
-            "user_2qjlgkAqIMpiR2flWIRzvWKtE0w"
+            "6473a1f5e4b0c3001f123456",
+            "6473a1f5e4b0c3001f123456",
+            "6473a1f5e4b0c3001f123456"
         ],
         "courseRatings": [
             {
-                "userId": "user_2qjlgkAqIMpiR2flWIRzvWKtE0w",
+                "userId": "6473a1f5e4b0c3001f789012",
                 "rating": 5,
                 "_id": "6773e37360cb0ab974342314"
             }
@@ -342,12 +342,12 @@ export const dummyCourses = [
         ],
         "educator": "675ac1512100b91a6d9b8b24",
         "enrolledStudents": [
-            "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
-            "user_2qjlgkAqIMpiR2flWIRzvWKtE0w"
+            "6473a1f5e4b0c3001f123456",
+            "6473a1f5e4b0c3001f123456"
         ],
         "courseRatings": [
             {
-                "userId": "user_2qjlgkAqIMpiR2flWIRzvWKtE0w",
+                "userId": "6473a1f5e4b0c3001f789012",
                 "rating": 5,
                 "_id": "6776369244daad0f313d81a9"
             }
@@ -414,8 +414,8 @@ export const dummyCourses = [
         ],
         "educator": "675ac1512100b91a6d9b8b24",
         "enrolledStudents": [
-            "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
-            "user_2qjlgkAqIMpiR2flWIRzvWKtE0w"
+            "6473a1f5e4b0c3001f123456",
+            "6473a1f5e4b0c3001f123456"
         ],
         "courseRatings": [],
         "createdAt": "2024-12-27T11:30:00.000Z",
@@ -480,8 +480,8 @@ export const dummyCourses = [
         ],
         "educator": "675ac1512100b91a6d9b8b24",
         "enrolledStudents": [
-            "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
-            "user_2qjlgkAqIMpiR2flWIRzvWKtE0w"
+            "6473a1f5e4b0c3001f123456",
+            "6473a1f5e4b0c3001f123456"
         ],
         "courseRatings": [],
         "createdAt": "2024-12-17T08:16:53.622Z",
@@ -546,7 +546,7 @@ export const dummyCourses = [
         ],
         "educator": "675ac1512100b91a6d9b8b24",
         "enrolledStudents": [
-            "user_2qjlgkAqIMpiR2flWIRzvWKtE0w"
+            "6473a1f5e4b0c3001f123456"
         ],
         "courseRatings": [],
         "createdAt": "2024-12-17T08:16:53.622Z",
@@ -611,13 +611,13 @@ export const dummyCourses = [
         ],
         "educator": "675ac1512100b91a6d9b8b24",
         "enrolledStudents": [
-            "user_2qjlgkAqIMpiR2flWIRzvWKtE0w",
-            "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
-            "user_2qjlgkAqIMpiR2flWIRzvWKtE0w"
+            "6473a1f5e4b0c3001f789012",
+            "6473a1f5e4b0c3001f123456",
+            "6473a1f5e4b0c3001f123456"
         ],
         "courseRatings": [
             {
-                "userId": "user_2qjlgkAqIMpiR2flWIRzvWKtE0w",
+                "userId": "6473a1f5e4b0c3001f789012",
                 "rating": 5,
                 "_id": "6773acf160cb0ab974342248"
             }
@@ -684,7 +684,7 @@ export const dummyCourses = [
         ],
         "educator": "675ac1512100b91a6d9b8b24",
         "enrolledStudents": [
-            "user_2qjlgkAqIMpiR2flWIRzvWKtE0w"
+            "6473a1f5e4b0c3001f123456"
         ],
         "courseRatings": [],
         "createdAt": "2024-12-17T08:16:53.622Z",
@@ -749,7 +749,7 @@ export const dummyCourses = [
         ],
         "educator": "675ac1512100b91a6d9b8b24",
         "enrolledStudents": [
-            "user_2qjlgkAqIMpiR2flWIRzvWKtE0w"
+            "6473a1f5e4b0c3001f123456"
         ],
         "courseRatings": [],
         "createdAt": "2024-12-17T08:16:53.622Z",

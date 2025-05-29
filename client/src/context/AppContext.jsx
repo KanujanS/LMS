@@ -1,25 +1,73 @@
 import { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import humanizeDuration from "humanize-duration";
-import { useAuth, useUser } from "@clerk/clerk-react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import axios from "axios";
 
 export const AppContext = createContext();
 
 export const AppContextProvider = (props) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
   const currency = import.meta.env.VITE_CURRENCY;
   const navigate = useNavigate();
 
-  const { getToken } = useAuth();
-  const { user } = useUser();
-
   const [allCourses, setAllCourses] = useState([]);
-  const [isEducator, setIsEducator] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [userData, setUserData] = useState(null);
+
+  // Get user from localStorage and initialize data
+  useEffect(() => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      if (storedUser && storedUser._id) { // Ensure we have a valid user with _id
+        setUserData(storedUser);
+      } else {
+        // Clear invalid user data
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    }
+  }, []);
+
+  // Add axios interceptor for authentication
+  useEffect(() => {
+    const requestInterceptor = axios.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    const responseInterceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUserData(null);
+          navigate('/login');
+          toast.error('Session expired. Please login again.');
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // Cleanup interceptors on unmount
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+      axios.interceptors.response.eject(responseInterceptor);
+    };
+  }, [navigate]);
 
   //fetch all courses
   const fetchAllCourses = async () => {
@@ -38,23 +86,17 @@ export const AppContextProvider = (props) => {
 
   // Fetch user data
   const fetchUserData = async () => {
-    if (user.publicMetadata.role === "educator") {
-      setIsEducator(true);
-    }
     try {
-      const token = await getToken();
-
-      const { data } = await axios.get(backendUrl + "/api/user/data", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const { data } = await axios.get(backendUrl + "/api/user/data");
       if (data.success) {
         setUserData(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error('Error fetching user data:', error);
+      toast.error(error.response?.data?.message || 'Failed to fetch user data');
     }
   };
 
@@ -104,11 +146,7 @@ export const AppContextProvider = (props) => {
   // Fetch user enrolled courses
   const fetchUserEnrolledCourses = async () => {
     try {
-      const token = await getToken();
-      const { data } = await axios.get(
-        backendUrl + "/api/user/enrolled-courses",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const { data } = await axios.get(backendUrl + "/api/user/enrolled-courses");
       if (data.success) {
         setEnrolledCourses(data.enrolledCourses.reverse());
       } else {
@@ -123,9 +161,10 @@ export const AppContextProvider = (props) => {
     fetchAllCourses();
   }, []);
 
+  // Initialize user data when userData changes
   useEffect(() => {
     const initializeUserData = async () => {
-      if (user) {
+      if (userData) {
         try {
           await Promise.all([
             fetchUserData(),
@@ -139,15 +178,13 @@ export const AppContextProvider = (props) => {
     };
     
     initializeUserData();
-  }, [user]);
+  }, [userData]);
 
   const value = {
     currency,
     allCourses,
     navigate,
     calculateRating,
-    isEducator,
-    setIsEducator,
     calculateChapterTime,
     calculateCourseDuration,
     calculateNoOfLectures,
@@ -156,9 +193,8 @@ export const AppContextProvider = (props) => {
     backendUrl,
     userData,
     setUserData,
-    getToken,
     fetchAllCourses,
-    fetchUserData, // Add fetchUserData to the context value
+    fetchUserData
   };
 
   return (

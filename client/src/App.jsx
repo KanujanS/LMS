@@ -11,29 +11,47 @@ import AddCourse from './pages/educator/AddCourse'
 import MyCourses from './pages/educator/MyCourses'
 import StudentsEnrolled from './pages/educator/StudentsEnrolled'
 import Navbar from './components/student/Navbar'
+import Login from './pages/student/Login'
+import ProtectedRoute from './components/auth/ProtectedRoute'
 import "quill/dist/quill.snow.css";
-import { ToastContainer } from 'react-toastify';
 
 const App = () => {
-
-  const isEducatorRoute = useMatch('/educator/*')
+  const isEducatorRoute = useMatch('/educator/*');
+  const token = localStorage.getItem('token');
 
   return (
     <div className='text-default min-h-screen bg-white'>
-      <ToastContainer/>
       {!isEducatorRoute && <Navbar/>}
       <Routes>
-        <Route path='/' element={ <Home/>}/>
-        <Route path='/course-list' element={ <CoursesList/> }/>
-        <Route path='/course-list/:input' element={ <CoursesList/> }/>
+        {/* Public Routes */}
+        <Route path='/login' element={<Login />} />
+        <Route path='/' element={<Home/>}/>
+        <Route path='/course-list' element={<CoursesList/>}/>
+        <Route path='/course-list/:input' element={<CoursesList/>}/>
         <Route path='/course/:id' element={<CourseDetails/>}/>
-        <Route path='/my-enrollments' element={<MyEnrollments/>}/>
-        <Route path='/player/:courseId' element={<Player/>}/>
-        <Route path='/educator' element={<Educator/>}>
-            <Route path='/educator' element={<Dashboard/>} />
-            <Route path='add-course' element={<AddCourse/>} />
-            <Route path='my-courses' element={<MyCourses/>} />
-            <Route path='student-enrolled' element={<StudentsEnrolled/>} />
+
+        {/* Protected Student Routes */}
+        <Route path='/my-enrollments' element={
+          <ProtectedRoute>
+            <MyEnrollments/>
+          </ProtectedRoute>
+        }/>
+        <Route path='/player/:courseId' element={
+          <ProtectedRoute>
+            <Player/>
+          </ProtectedRoute>
+        }/>
+
+        {/* Protected Educator Routes */}
+        <Route path='/educator' element={
+          <ProtectedRoute requireEducator={true}>
+            <Educator/>
+          </ProtectedRoute>
+        }>
+          <Route path='/educator' element={<Dashboard/>} />
+          <Route path='add-course' element={<AddCourse/>} />
+          <Route path='my-courses' element={<MyCourses/>} />
+          <Route path='student-enrolled' element={<StudentsEnrolled/>} />
         </Route>
       </Routes>
     </div>

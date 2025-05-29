@@ -2,14 +2,11 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import connectDB from "./configs/mongodb.js";
-import { clerkWebhooks, stripeWebhooks } from "./controllers/webhooks.js";
+import { stripeWebhooks } from "./controllers/webhooks.js";
 import educatorRouter from "./routes/educatorRoutes.js";
 import connectCloudinary from "./configs/cloudinary.js";
 import courseRouter from "./routes/courseRoute.js";
 import userRouter from "./routes/userRoutes.js";
-
-// Import Clerk using require for better Vercel compatibility
-const { clerkMiddleware } = await import('@clerk/express');
 
 // Initialize Express
 const app = express();
@@ -27,17 +24,23 @@ app.use('/api/webhook/stripe', express.raw({ type: 'application/json' }));
 // Parse JSON for other routes
 app.use(express.json());
 
-app.use(clerkMiddleware());
-
-//Routes
+// Routes
 app.get("/", (req, res) => res.send("API Working"));
-app.post("/clerk", clerkWebhooks);
+app.use("/api/user", userRouter);
 app.use("/api/educator", educatorRouter);
 app.use("/api/course", courseRouter);
-app.use("/api/user", userRouter);
 
 // Stripe webhook route
 app.post("/api/webhook/stripe", stripeWebhooks);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    message: err.message || 'Internal server error'
+  });
+});
 
 // Port
 const PORT = process.env.PORT || 5001;

@@ -28,7 +28,7 @@ const TestimonialsSection = () => {
               </div>
               <p className="text-gray-600 mt-5 leading-relaxed ">{testimonial.feedback}</p>
             </div>
-            <a href="#" className="text-blue-500 font-medium underline px-5 block">Read more</a>
+            <a href="#" className="text-teal-500 font-medium underline px-5 block">Read more</a>
           </div>
         ))}
       </div>
