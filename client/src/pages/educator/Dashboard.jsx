@@ -2,8 +2,8 @@ import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { assets, dummyDashboardData } from '../../assets/assets'
 import Loading from '../../components/student/Loading'
-import axios from 'axios'
-import { toast } from 'react-hot-toast'
+import api from '../../utils/api'
+import { toast } from 'react-toastify'
 
 const Dashboard = () => {
 
@@ -13,18 +13,19 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const { data } = await axios.get(backendUrl + '/api/educator/dashboard')
+      setLoading(true);
+      const { data } = await api.get('/api/educator/dashboard');
 
       if (data.success) {
-        setDashboardData(data.dashboardData)
+        setDashboardData(data.dashboardData);
       } else {
-        toast.error(data.message)
+        toast.error(data.message);
       }
     } catch (error) {
-      console.error('Dashboard error:', error)
-      toast.error(error.response?.data?.message || 'Failed to load dashboard')
+      console.error('Dashboard error:', error);
+      // Error will be handled by the API interceptor
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 

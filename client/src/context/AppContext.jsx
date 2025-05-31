@@ -146,7 +146,10 @@ export const AppContextProvider = (props) => {
   // Fetch user enrolled courses
   const fetchUserEnrolledCourses = async () => {
     try {
-      const { data } = await axios.get(backendUrl + "/api/user/enrolled-courses");
+      const token = await getToken();
+      const { data } = await axios.get(backendUrl + "/api/user/enrolled-courses", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (data.success) {
         setEnrolledCourses(data.enrolledCourses.reverse());
       } else {
@@ -180,6 +183,27 @@ export const AppContextProvider = (props) => {
     initializeUserData();
   }, [userData]);
 
+  // Check if user is an educator
+  const isEducator = userData?.role === 'educator';
+
+  // Token management functions
+  const getToken = () => localStorage.getItem('token');
+  
+  const setToken = (token) => {
+    if (token) {
+      localStorage.setItem('token', token);
+    } else {
+      localStorage.removeItem('token');
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUserData(null);
+    navigate('/login');
+  };
+
   const value = {
     currency,
     allCourses,
@@ -194,7 +218,11 @@ export const AppContextProvider = (props) => {
     userData,
     setUserData,
     fetchAllCourses,
-    fetchUserData
+    fetchUserData,
+    isEducator,
+    getToken,
+    setToken,
+    logout
   };
 
   return (

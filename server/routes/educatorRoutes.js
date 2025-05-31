@@ -12,17 +12,23 @@ import { protect, protectEducator } from "../middlewares/authMiddleware.js";
 const educatorRouter = express.Router();
 
 // Add educator role
+// Public route to become an educator
 educatorRouter.get("/update-role", protect, updateRoleToEducator);
+
+// Protected educator routes - need both protect and protectEducator
 educatorRouter.post(
   "/add-course",
-  upload.single("image"),
+  protect,
   protectEducator,
+  upload.single("image"),
   addCourse
 );
-educatorRouter.get("/courses", protectEducator, getEducatorCourses);
-educatorRouter.get("/dashboard", protectEducator, educatorDashboardData);
+
+educatorRouter.get("/courses", protect, protectEducator, getEducatorCourses);
+educatorRouter.get("/dashboard", protect, protectEducator, educatorDashboardData);
 educatorRouter.get(
   "/enrolled-students",
+  protect,
   protectEducator,
   getEnrolledStudentsData
 );

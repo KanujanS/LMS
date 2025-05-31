@@ -8,7 +8,7 @@ import Footer from '../../components/student/Footer';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { backendUrl } = useContext(AppContext);
+  const { backendUrl, setToken, setUserData } = useContext(AppContext);
 
   const [currentState, setCurrentState] = useState('Login');
   const [formData, setFormData] = useState({
@@ -18,15 +18,16 @@ const Login = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Set axios default Authorization header if token exists in localStorage
+  // Check if user is already logged in
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
+    const user = localStorage.getItem('user');
+    if (token && user) {
+      // User is already logged in, redirect to home or intended page
+      const redirectTo = location.state?.from || '/';
+      navigate(redirectTo);
     }
-  }, []);
+  }, [navigate, location]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -38,11 +39,6 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Clear any existing auth data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      delete axios.defaults.headers.common['Authorization'];
-
       const endpoint = currentState === 'Login' ? '/api/user/login' : '/api/user/register';
       const { data } = await axios.post(backendUrl + endpoint, formData);
 
@@ -50,31 +46,24 @@ const Login = () => {
         if (!data.user._id) {
           throw new Error('Invalid user data received');
         }
-
-        // Save token and user to localStorage
-        localStorage.setItem('token', data.token);
+        
+        // Set token and user data
+        setToken(data.token);
+        setUserData(data.user);
         localStorage.setItem('user', JSON.stringify(data.user));
 
-        // Set axios Authorization header for future requests
-        axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+        // Show success message
+        toast.success(currentState === 'Login' ? 'Login successful!' : 'Registration successful!');
 
-        toast.success(`${currentState} successful!`);
-
-        // Redirect to the intended page or home
+        // Redirect to home or intended page
         const redirectTo = location.state?.from || '/';
         navigate(redirectTo);
       } else {
         toast.error(data.message || 'Authentication failed');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else if (error.message) {
-        toast.error(error.message);
-      } else {
-        toast.error('An unexpected error occurred. Please try again.');
-      }
+      console.error('Auth error:', error);
+      toast.error(error.response?.data?.message || error.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }

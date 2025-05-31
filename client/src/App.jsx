@@ -14,6 +14,8 @@ import Navbar from './components/student/Navbar'
 import Login from './pages/student/Login'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import "quill/dist/quill.snow.css";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => {
   const isEducatorRoute = useMatch('/educator/*');
@@ -21,6 +23,7 @@ const App = () => {
 
   return (
     <div className='text-default min-h-screen bg-white'>
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       {!isEducatorRoute && <Navbar/>}
       <Routes>
         {/* Public Routes */}

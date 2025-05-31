@@ -73,7 +73,7 @@ const Navbar = () => {
             <span>Hi, {user.name}!</span>
             <button 
               onClick={handleLogout}
-              className="flex items-center gap-2 hover:text-gray-700"
+              className="flex items-center gap-2 cursor-pointer hover:text-gray-700"
             >
               <img 
                 className="w-8 h-8 rounded-full" 
