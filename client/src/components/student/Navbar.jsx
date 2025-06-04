@@ -4,19 +4,19 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { CgProfile } from "react-icons/cg";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const {backendUrl} = useContext(AppContext);
+  const { userData: user, logout, setUserData } = useContext(AppContext);
 
   const isCourseListPage = location.pathname.includes('/course-list');
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
-  const token = localStorage.getItem('token');
 
   const becomeEducator = async () => {
     try {
+      const token = localStorage.getItem('token');
+
       if (!user || !token) {
         toast.error('Please login first');
         navigate('/login');
@@ -24,31 +24,41 @@ const Navbar = () => {
       }
 
       if (user.role === 'educator') {
-        navigate('/educator')
+        navigate('/educator');
         return;
       }
-      const { data } = await axios.get(backendUrl + '/api/educator/update-role', {
+
+      const { data } = await axios.get('/api/educator/update-role', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (data.success) {
+        // Update local storage first
         const updatedUser = { ...user, role: 'educator' };
         localStorage.setItem('user', JSON.stringify(updatedUser));
-        toast.success(data.message);
-        navigate('/educator');
+        
+        // Show success message
+        toast.success('Successfully became an educator!');
+        
+        // Update context and navigate last
+        setUserData(updatedUser);
+        setTimeout(() => navigate('/educator'), 100);
       } else {
-        toast.error(data.message);
+        toast.error(data.message || 'Failed to become an educator');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
+      console.error('Error becoming educator:', error);
+      const errorMsg = error.response?.data?.message || 'Failed to become an educator';
+      toast.error(errorMsg);
+      
+      if (error.response?.status === 401) {
+        setTimeout(() => navigate('/login'), 100);
+      }
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    toast.success('Logged out successfully');
-    navigate('/login');
+    logout();
   };
 
   return (
@@ -70,17 +80,12 @@ const Navbar = () => {
         </div>
         {user ? (
           <div className="flex items-center gap-3">
-            <span>Hi, {user.name}!</span>
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-2 cursor-pointer hover:text-gray-700"
-            >
-              <img 
-                className="w-8 h-8 rounded-full" 
-                src={user.imageUrl || assets.profile_img} 
-                alt="profile"
-              />
-              <span>Logout</span>
+            <span>Hi, {user.name}</span>
+            <button onClick={handleLogout} className="cursor-pointer">
+              <div className="group relative flex flex-col items-center">
+                <CgProfile className="w-7 h-7 text-teal-500"/>
+                <span className="absolute top-10 text-sm bg-teal-200 px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-gray-700">Logout</span>
+              </div>
             </button>
           </div>
         ) : (

@@ -19,7 +19,6 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => {
   const isEducatorRoute = useMatch('/educator/*');
-  const token = localStorage.getItem('token');
 
   return (
     <div className='text-default min-h-screen bg-white'>
@@ -51,7 +50,7 @@ const App = () => {
             <Educator/>
           </ProtectedRoute>
         }>
-          <Route path='/educator' element={<Dashboard/>} />
+          <Route index element={<Dashboard/>} />
           <Route path='add-course' element={<AddCourse/>} />
           <Route path='my-courses' element={<MyCourses/>} />
           <Route path='student-enrolled' element={<StudentsEnrolled/>} />

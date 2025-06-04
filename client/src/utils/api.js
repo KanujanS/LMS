@@ -1,12 +1,8 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-// Get the backend URL from window.__INITIAL_DATA__ or environment or default to localhost
+// Get the backend URL from environment or default to localhost
 const getBackendUrl = () => {
-  if (typeof window !== 'undefined' && window.__INITIAL_DATA__ && window.__INITIAL_DATA__.backendUrl) {
-    return window.__INITIAL_DATA__.backendUrl;
-  }
-  // For Vite, use import.meta.env
   if (import.meta && import.meta.env && import.meta.env.VITE_BACKEND_URL) {
     return import.meta.env.VITE_BACKEND_URL;
   }
@@ -15,58 +11,54 @@ const getBackendUrl = () => {
 
 const api = axios.create({
   baseURL: getBackendUrl(),
-  withCredentials: true, // Important for CORS
+  withCredentials: true,
   timeout: 10000, // 10 second timeout
 });
 
-// Request interceptor
+// Add a request interceptor to attach the token
 api.interceptors.request.use(
   (config) => {
+    // Skip token for auth routes
+    if (config.url.includes('/api/user/login') || config.url.includes('/api/user/register')) {
+      return config;
+    }
+
     const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    } else {
-      // If no token is found and we're not on the login page, redirect to login
-      const isLoginRequest = config.url.includes('/login') || config.url.includes('/register');
-      if (!isLoginRequest && typeof window !== 'undefined') {
+    if (!token) {
+      // If no token is found and we're not on an auth route, redirect to login
+      if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
+      return Promise.reject(new Error('No authentication token found'));
     }
+
+    config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor
+// Add a response interceptor to handle errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Network error
+    // Handle network errors
     if (!error.response) {
       toast.error('Network error. Please check your connection.');
       return Promise.reject(error);
     }
 
-    // Get the error message
-    const message = error.response?.data?.message || error.message || 'An error occurred';
-    
-    // Handle specific error cases
-    switch (error.response.status) {
-      case 401:
-        toast.error('Please login to continue');
-        // Optional: Redirect to login page or clear invalid token
+    // Handle authentication errors
+    if (error.response.status === 401) {
+      if (!error.config.url.includes('/api/user/login') && !error.config.url.includes('/api/user/register')) {
+        toast.error('Session expired. Please login again.');
         localStorage.removeItem('token');
-        break;
-      case 403:
-        toast.error('You do not have permission to perform this action');
-        break;
-      case 503:
-        toast.error('Service temporarily unavailable. Please try again later.');
-        break;
-      default:
-        toast.error(message);
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+    } else if (!window.isLoggingOut) {
+      // Show other errors unless we're logging out
+      toast.error(error.response?.data?.message || 'An error occurred');
     }
 
     return Promise.reject(error);

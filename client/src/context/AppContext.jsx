@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import humanizeDuration from "humanize-duration";
 import { toast } from "react-hot-toast";
@@ -15,48 +15,155 @@ export const AppContextProvider = (props) => {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [userData, setUserData] = useState(null);
 
-  // Get user from localStorage and initialize data
+  // Initialize auth state and axios config
   useEffect(() => {
-    try {
-      const storedUser = JSON.parse(localStorage.getItem('user'));
-      if (storedUser && storedUser._id) { // Ensure we have a valid user with _id
-        setUserData(storedUser);
-      } else {
-        // Clear invalid user data
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-      }
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
+    if (!window.activeRequests) {
+      window.activeRequests = [];
     }
-  }, []);
+
+    // Set axios base URL
+    if (backendUrl) {
+      axios.defaults.baseURL = backendUrl;
+    }
+
+    // Initialize auth state from localStorage
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user && user._id) {
+          setUserData(user);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        } else {
+          // Invalid user data
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          delete axios.defaults.headers.common['Authorization'];
+        }
+      } catch (error) {
+        // Invalid JSON
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        delete axios.defaults.headers.common['Authorization'];
+      }
+    } else {
+      // No auth data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  }, [backendUrl]);
+
+  // Initialize auth state from localStorage
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+
+        if (!token) {
+          setToken(null);
+          setUserData(null);
+          return;
+        }
+
+        // Set initial user data if available
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            if (parsedUser?._id) {
+              setUserData(parsedUser);
+            }
+          } catch (e) {
+            console.error('Failed to parse stored user:', e);
+          }
+        }
+
+        // Verify token by making a request
+        const { data } = await axios.get('/api/user/data');
+        if (data.success && data.user) {
+          setUserData(data.user);
+          localStorage.setItem('user', JSON.stringify(data.user));
+        } else {
+          throw new Error('Failed to verify token');
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        setToken(null);
+        setUserData(null);
+      }
+    };
+
+    if (backendUrl) {
+      initializeAuth();
+    }
+  }, [backendUrl]);
+
+
+
 
   // Add axios interceptor for authentication
   useEffect(() => {
     const requestInterceptor = axios.interceptors.request.use(
       (config) => {
+        // Don't modify auth routes
+        if (config.url.includes('/login') || config.url.includes('/register')) {
+          return config;
+        }
+
         const token = localStorage.getItem('token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Create controller for this request
+        const controller = new AbortController();
+        config.signal = controller.signal;
+        window.activeRequests.push(controller);
         return config;
       },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
 
     const responseInterceptor = axios.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        // Remove controller when request completes
+        if (response.config.signal) {
+          const index = window.activeRequests.findIndex(
+            c => c.signal === response.config.signal
+          );
+          if (index > -1) {
+            window.activeRequests.splice(index, 1);
+          }
+        }
+        return response;
+      },
       (error) => {
-        if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setUserData(null);
-          navigate('/login');
-          toast.error('Session expired. Please login again.');
+        // Remove controller on error
+        if (error.config?.signal) {
+          const index = window.activeRequests.findIndex(
+            c => c.signal === error.config.signal
+          );
+          if (index > -1) {
+            window.activeRequests.splice(index, 1);
+          }
+        }
+
+        // Only show errors if not logging out
+        if (!window.isLoggingOut) {
+          // Handle 401 errors
+          if (error.response?.status === 401) {
+            // Don't handle 401s for auth routes
+            if (!error.config.url.includes('/api/user/login') && !error.config.url.includes('/api/user/register')) {
+              setToken(null);
+              toast.error('Session expired. Please login again.');
+            }
+          } else if (!axios.isCancel(error)) {
+            // Show other errors unless it's a cancellation
+            toast.error(error.response?.data?.message || 'An error occurred');
+          }
         }
         return Promise.reject(error);
       }
@@ -87,16 +194,29 @@ export const AppContextProvider = (props) => {
   // Fetch user data
   const fetchUserData = async () => {
     try {
-      const { data } = await axios.get(backendUrl + "/api/user/data");
-      if (data.success) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No auth token');
+      }
+
+      const { data } = await axios.get('/api/user/data', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success && data.user) {
         setUserData(data.user);
         localStorage.setItem('user', JSON.stringify(data.user));
+        return true;
       } else {
-        toast.error(data.message);
+        throw new Error(data.message || 'Failed to fetch user data');
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-      toast.error(error.response?.data?.message || 'Failed to fetch user data');
+      if (error.response?.status === 401) {
+        setToken(null);
+      }
+      toast.error(error.response?.data?.message || error.message || 'Failed to fetch user data');
+      return false;
     }
   };
 
@@ -192,17 +312,52 @@ export const AppContextProvider = (props) => {
   const setToken = (token) => {
     if (token) {
       localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      delete axios.defaults.headers.common['Authorization'];
+      setUserData(null);
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    // Set a flag to prevent error toasts during logout
+    window.isLoggingOut = true;
+
+    // Clear localStorage first
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+
+    // Clear axios headers
+    delete axios.defaults.headers.common['Authorization'];
+
+    // Clear state
     setUserData(null);
-    navigate('/login');
-  };
+
+    // Cancel any pending requests silently
+    if (window.activeRequests && window.activeRequests.length > 0) {
+      window.activeRequests.forEach(controller => {
+        if (controller && controller.abort) {
+          try {
+            controller.abort('logout');
+          } catch (e) {
+            console.debug('Error aborting request:', e);
+          }
+        }
+      });
+      window.activeRequests = [];
+    }
+
+    // Navigate to login
+    navigate('/login', { replace: true });
+
+    // Show success message and cleanup
+    setTimeout(() => {
+      window.isLoggingOut = false;
+      toast.success('Logged out successfully');
+    }, 100);
+  }, [navigate]);
 
   const value = {
     currency,

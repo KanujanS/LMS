@@ -5,6 +5,7 @@ import { assets } from "../../assets/assets";
 import { AppContext } from "../../context/AppContext";
 import { toast } from "react-hot-toast";
 import axios from "axios";
+import { FaCloudUploadAlt } from "react-icons/fa";
 
 const AddCourse = () => {
 
@@ -158,7 +159,7 @@ const AddCourse = () => {
           <div className="flex md:flex-row flex-col items-center gap-3">
             <p>Course Thumbnail</p>
             <label htmlFor="thumbnailImage" className="flex items-center gap-3">
-              <img src={assets.file_upload_icon} alt="file upload icon" className="p-3 bg-blue-500 rounded"/>
+              <FaCloudUploadAlt className="text-teal-500 cursor-pointer border rounded p-1" size={25}/>
               <input type="file" id="thumbnailImage" onChange={e => setImage(e.target.files[0])} accept="image/*" hidden/>
               <img className="max-h-10" src={image ? URL.createObjectURL(image) : null} alt="" />
             </label>
@@ -184,7 +185,7 @@ const AddCourse = () => {
                 <div className="p-4">
                   {chapter.chapterContent.map((lecture, lectureIndex)=>(
                     <div key={lectureIndex} className=" flex justify-between items-center mb-2">
-                      <span>{lectureIndex + 1} {lecture.lectureTitle} - {lecture.lectureDuration} mins - <a href={lecture.lectureUrl} target="_blank" className="text-blue-500">Link</a> - {lecture.isPreviewFree ? 'Free Preview' : 'Paid'}</span>
+                      <span>{lectureIndex + 1} {lecture.lectureTitle} - {lecture.lectureDuration} mins - <a href={lecture.lectureUrl} target="_blank" className="text-teal-500">Link</a> - {lecture.isPreviewFree ? 'Free Preview' : 'Paid'}</span>
                       <img src={assets.cross_icon} alt="Cross icon"  onClick={()=> handleLecture('remove', chapter.chapterId, lectureIndex)} className="cursor-pointer"/>
                     </div>
                   ))}
@@ -193,7 +194,7 @@ const AddCourse = () => {
               )}
             </div>
           ))}
-          <div className="flex justify-center items-center bg-blue-100 p-2 border border-blue-300 rounded-lg cursor-pointer" onClick={()=>handleChapter('add')}>+ Add Chapter</div>
+          <div className="flex justify-center items-center bg-teal-100 p-2 border border-teal-300 rounded-lg cursor-pointer" onClick={()=>handleChapter('add')}>+ Add Chapter</div>
           {showPopup && (
             <div className="fixed inset-0 flex justify-center items-center bg-gray-800/50">
               <div className="bg-white text-gray-700 p-4 rounded relative w-full max-w-80">

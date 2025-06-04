@@ -39,31 +39,40 @@ const Login = () => {
     setLoading(true);
 
     try {
+      // Clear any existing auth data
+      setToken(null);
+      setUserData(null);
+
       const endpoint = currentState === 'Login' ? '/api/user/login' : '/api/user/register';
-      const { data } = await axios.post(backendUrl + endpoint, formData);
+      
+      const { data } = await axios.post(endpoint, formData, {
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-      if (data.success && data.user && data.token) {
-        if (!data.user._id) {
-          throw new Error('Invalid user data received');
-        }
-        
-        // Set token and user data
-        setToken(data.token);
-        setUserData(data.user);
-        localStorage.setItem('user', JSON.stringify(data.user));
-
-        // Show success message
-        toast.success(currentState === 'Login' ? 'Login successful!' : 'Registration successful!');
-
-        // Redirect to home or intended page
-        const redirectTo = location.state?.from || '/';
-        navigate(redirectTo);
-      } else {
-        toast.error(data.message || 'Authentication failed');
+      if (!data.success || !data.user || !data.token) {
+        throw new Error(data.message || 'Login failed');
       }
+
+      if (!data.user._id) {
+        throw new Error('Invalid user data received');
+      }
+
+      // Set token in both context and localStorage
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      
+      // Then set user data
+      setUserData(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      // Redirect user
+      const redirectTo = location.state?.from || '/';
+      navigate(redirectTo, { replace: true });
+      
+      toast.success(`Welcome ${data.user.name}!`);
     } catch (error) {
-      console.error('Auth error:', error);
-      toast.error(error.response?.data?.message || error.message || 'Authentication failed');
+      console.error('Login error:', error);
+      toast.error(error.response?.data?.message || error.message || 'An error occurred during login');
     } finally {
       setLoading(false);
     }

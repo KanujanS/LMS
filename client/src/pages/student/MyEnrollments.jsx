@@ -44,7 +44,7 @@ const MyEnrollments = () => {
 
   return (
     <>
-    <div className='md:px-35 px-8 pt-10 '>
+    <div className='md:px-35 px-8 pt-10 bg-gradient-to-b from-cyan-100/70'>
       <h1 className='text-2xl font-semibold'>My Enrollments</h1>
       <table className='md:table-auto table-fixed w-full overflow-hidden border mt-10'>
         <thead className='text-gray-900 border border-gray-500/20 text-sm text-left max:sm-hidden'>

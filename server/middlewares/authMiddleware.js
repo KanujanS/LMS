@@ -19,34 +19,49 @@ export const protect = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded JWT:", decoded); // ✅ debug
+    try {
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Check token expiration
+      if (decoded.exp * 1000 < Date.now()) {
+        return res.status(401).json({
+          success: false,
+          message: "Token has expired"
+        });
+      }
 
-    const userId = decoded.userId;
+      const userId = decoded.userId;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid user ID format"
-      });
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid user ID format"
+        });
+      }
+
+      // Fetch user from DB
+      const user = await User.findById(userId).select("-password");
+
+      if (!user) {
+        return res.status(401).json({ 
+          success: false, 
+          message: "User not found" 
+        });
+      }
+
+      // Attach user to request
+      req.user = user;
+      next();
+    } catch (jwtError) {
+      if (jwtError.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          message: "Session expired. Please login again."
+        });
+      }
+      throw jwtError;
     }
-
-    // Fetch user from DB
-    const user = await User.findById(userId).select("-password");
-
-    if (!user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "User not found" 
-      });
-    }
-
-    // Attach user to request
-    req.user = user;
-    console.log("User attached to req.user:", req.user); // ✅ debug
-
-    next();
   } catch (error) {
     return res.status(401).json({ 
       success: false, 

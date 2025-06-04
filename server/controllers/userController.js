@@ -31,11 +31,14 @@ export const register = async (req, res) => {
     });
     await user.save();
 
-    // Generate token
+    // Generate token with explicit expiration
+    const expiresIn = 7 * 24 * 60 * 60; // 7 days in seconds
     const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { 
+        userId: user._id,
+        exp: Math.floor(Date.now() / 1000) + expiresIn
+      },
+      process.env.JWT_SECRET
     );
 
     res.status(201).json({
@@ -77,11 +80,14 @@ export const login = async (req, res) => {
       });
     }
 
-    // Generate token
+    // Generate token with explicit expiration
+    const expiresIn = 7 * 24 * 60 * 60; // 7 days in seconds
     const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { 
+        userId: user._id,
+        exp: Math.floor(Date.now() / 1000) + expiresIn
+      },
+      process.env.JWT_SECRET
     );
 
     res.json({
