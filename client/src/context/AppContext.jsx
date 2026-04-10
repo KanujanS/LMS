@@ -7,7 +7,7 @@ import axios from "axios";
 export const AppContext = createContext();
 
 export const AppContextProvider = (props) => {
-  const backendUrl = 'http://localhost:5001';
+  const backendUrl = 'https://learngate-backend.vercel.app';
   const currency = 'LKR';
   const navigate = useNavigate();
 
