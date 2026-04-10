@@ -8,6 +8,7 @@ import Footer from '../../components/student/Footer'
 import YouTube from 'react-youtube'
 import axios from 'axios'
 import { toast } from 'react-hot-toast'
+import { getYouTubeVideoId } from '../../utils/youtube'
 
 const CourseDetails = () => {
   const { id } = useParams()
@@ -28,6 +29,7 @@ const CourseDetails = () => {
     backendUrl,
     userData,
     getToken,
+    fetchUserEnrolledCourses,
   } = useContext(AppContext)
 
   const fetchCourseData = async () => {
@@ -39,7 +41,7 @@ const CourseDetails = () => {
         toast.error(data.message)
       }
     } catch (error) {
-      toast.error(error.message)
+        toast.error(error.response?.data?.message || error.message)
     }
   }
 
@@ -70,7 +72,10 @@ const CourseDetails = () => {
         toast.error(data.message)
       }
     } catch (error) {
-      toast.error(error.message)
+        if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled') {
+          return;
+        }
+        toast.error(error.response?.data?.message || error.message)
     } finally {
       setLoadingEnroll(false)
     }
@@ -81,10 +86,34 @@ const CourseDetails = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const paymentSuccess = urlParams.get('payment_success');
       const paymentCancelled = urlParams.get('payment_cancelled');
+      const sessionId = urlParams.get('session_id');
 
       if (paymentSuccess === 'true') {
-        // Wait for webhook processing
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        if (sessionId) {
+          try {
+            const token = await getToken();
+
+            if (token) {
+              const verifyResponse = await axios.post(
+                backendUrl + '/api/user/verify-payment',
+                { sessionId },
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+
+              if (verifyResponse.data.success) {
+                await fetchUserEnrolledCourses();
+                toast.success('Successfully enrolled in the course!');
+                window.location.href = '/my-enrollments';
+                return;
+              }
+            }
+          } catch (error) {
+            console.error('Payment verification error:', error);
+          }
+        }
+
+        // Fallback: wait and poll enrollment status if verification endpoint is not available yet
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
         // Check enrollment status with retries
         let retryCount = 0;
@@ -102,6 +131,7 @@ const CourseDetails = () => {
               const isEnrolled = enrolledCourses.some(course => course._id === id);
 
               if (isEnrolled) {
+                await fetchUserEnrolledCourses();
                 toast.success('Successfully enrolled in the course!');
                 window.location.href = '/my-enrollments';
                 return;
@@ -223,7 +253,7 @@ const CourseDetails = () => {
                               <span className='text-gray-500'>{humanizeDuration(lecture.lectureDuration * 60 * 1000, { units: ['h', 'm'], round: true })}</span>
                               {lecture.isPreviewFree && (
                                 <p
-                                  onClick={() => setPlayerData({ videoId: lecture.lectureUrl.split('/').pop() })}
+                                  onClick={() => setPlayerData({ videoId: getYouTubeVideoId(lecture.lectureUrl) })}
                                   className='text-blue-500 cursor-pointer'
                                 >
                                   Preview

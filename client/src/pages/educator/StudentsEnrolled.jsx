@@ -20,6 +20,9 @@ const StudentsEnrolled = () => {
         toast.error(data.message)
       }
     } catch (error) {
+      if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled' || window.isLoggingOut) {
+        return;
+      }
       toast.error(error.message)
     }
   }

@@ -14,6 +14,10 @@ const MyEnrollments = () => {
   const getCourseProgress = async ()=>{
     try {
       const token = await getToken();
+      if (!token) {
+        return;
+      }
+
       const tempProgressArray = await Promise.all(
         enrolledCourses.map(async(course)=>{
           const {data} = await axios.post(`${backendUrl}/api/user/get-course-progress`,{courseId: course._id}, {headers: {Authorization: `Bearer ${token}`}})
@@ -26,6 +30,14 @@ const MyEnrollments = () => {
       setProgressArray(tempProgressArray);
 
     } catch (error) {
+      if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled' || window.isLoggingOut) {
+        return;
+      }
+
+      if (error.response?.status === 401 && !localStorage.getItem('token')) {
+        return;
+      }
+
       toast.error(error.message);
     }
   }

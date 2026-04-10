@@ -72,10 +72,10 @@ export const addCourse = async (req, res) => {
       });
     }
 
-    const newCourse = await Course.create(parsedCourseData);
     const imageUpload = await cloudinary.uploader.upload(imageFile.path);
-    newCourse.courseThumbnail = imageUpload.secure_url;
-    await newCourse.save();
+    parsedCourseData.courseThumbnail = imageUpload.secure_url;
+
+    await Course.create(parsedCourseData);
 
     res.json({ success: true, message: "Course added" });
   } catch (error) {

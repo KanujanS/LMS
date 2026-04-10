@@ -13,9 +13,12 @@ const PurchaseSchema = new mongoose.Schema(
       required: true,
     },
     amount: { type: Number, required: true },
+    stripeSessionId: { type: String },
+    completedAt: { type: Date },
+    expiredAt: { type: Date },
     status: {
       type: String,
-      enum: ["pending", "completed", "failed"],
+      enum: ["pending", "completed", "failed", "expired"],
       default: "pending",
     },
   },

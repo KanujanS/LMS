@@ -109,7 +109,7 @@ export const AppContextProvider = (props) => {
     const requestInterceptor = axios.interceptors.request.use(
       (config) => {
         // Don't modify auth routes
-        if (config.url.includes('/login') || config.url.includes('/register')) {
+        if (config.url?.includes('/login') || config.url?.includes('/register')) {
           return config;
         }
 
@@ -155,10 +155,16 @@ export const AppContextProvider = (props) => {
         if (!window.isLoggingOut) {
           // Handle 401 errors
           if (error.response?.status === 401) {
+            const hasToken = !!localStorage.getItem('token');
+
+            if (!hasToken || window.location.pathname.includes('/login')) {
+              return Promise.reject(error);
+            }
+
             // Don't handle 401s for auth routes
-            if (!error.config.url.includes('/api/user/login') && !error.config.url.includes('/api/user/register')) {
+            if (!error.config?.url?.includes('/api/user/login') && !error.config?.url?.includes('/api/user/register')) {
               setToken(null);
-              toast.error('Session expired. Please login again.');
+              toast.error('Session expired. Please login again.', { id: 'session-expired' });
             }
           } else if (!axios.isCancel(error)) {
             // Show other errors unless it's a cancellation
@@ -187,6 +193,9 @@ export const AppContextProvider = (props) => {
         toast.error(data.message);
       }
     } catch (error) {
+      if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled' || window.isLoggingOut) {
+        return;
+      }
       toast.error(error.message);
     }
   };
@@ -196,7 +205,7 @@ export const AppContextProvider = (props) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        throw new Error('No auth token');
+        return false;
       }
 
       const { data } = await axios.get('/api/user/data', {
@@ -211,6 +220,9 @@ export const AppContextProvider = (props) => {
         throw new Error(data.message || 'Failed to fetch user data');
       }
     } catch (error) {
+      if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled' || window.isLoggingOut) {
+        return false;
+      }
       console.error('Error fetching user data:', error);
       if (error.response?.status === 401) {
         setToken(null);
@@ -267,6 +279,10 @@ export const AppContextProvider = (props) => {
   const fetchUserEnrolledCourses = async () => {
     try {
       const token = await getToken();
+      if (!token) {
+        return;
+      }
+
       const { data } = await axios.get(backendUrl + "/api/user/enrolled-courses", {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -276,6 +292,14 @@ export const AppContextProvider = (props) => {
         toast.error(data.message);
       }
     } catch (error) {
+      if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled' || window.isLoggingOut) {
+        return;
+      }
+
+      if (error.response?.status === 401 && !localStorage.getItem('token')) {
+        return;
+      }
+
       toast.error(error.message);
     }
   };

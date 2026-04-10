@@ -1,12 +1,12 @@
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 
 // Get the backend URL from environment or default to localhost
 const getBackendUrl = () => {
   if (import.meta && import.meta.env && import.meta.env.VITE_BACKEND_URL) {
     return import.meta.env.VITE_BACKEND_URL;
   }
-  return 'http://localhost:5000';
+  return 'http://localhost:5001';
 };
 
 const api = axios.create({
@@ -19,7 +19,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Skip token for auth routes
-    if (config.url.includes('/api/user/login') || config.url.includes('/api/user/register')) {
+    if (config.url?.includes('/api/user/login') || config.url?.includes('/api/user/register')) {
       return config;
     }
 
@@ -42,6 +42,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.code === 'ERR_CANCELED' || error.message === 'canceled' || window.isLoggingOut) {
+      return Promise.reject(error);
+    }
+
     // Handle network errors
     if (!error.response) {
       toast.error('Network error. Please check your connection.');
@@ -50,8 +54,13 @@ api.interceptors.response.use(
 
     // Handle authentication errors
     if (error.response.status === 401) {
-      if (!error.config.url.includes('/api/user/login') && !error.config.url.includes('/api/user/register')) {
-        toast.error('Session expired. Please login again.');
+      const hasToken = !!localStorage.getItem('token');
+      if (!hasToken || window.location.pathname.includes('/login')) {
+        return Promise.reject(error);
+      }
+
+      if (!error.config?.url?.includes('/api/user/login') && !error.config?.url?.includes('/api/user/register')) {
+        toast.error('Session expired. Please login again.', { id: 'session-expired' });
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';

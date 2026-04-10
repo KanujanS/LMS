@@ -9,6 +9,7 @@ import Rating from "../../components/student/Rating";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import Loading from "../../components/student/Loading";
+import { getYouTubeVideoId } from "../../utils/youtube";
 
 const Player = () => {
   const { enrolledCourses, calculateChapterTime, backendUrl, getToken, userData, fetchUserEnrolledCourses } = useContext(AppContext);
@@ -52,6 +53,9 @@ const Player = () => {
         toast.error(data.message)
       }
     } catch (error) {
+      if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled') {
+        return;
+      }
       toast.error(error.message)
     }
   }
@@ -67,6 +71,9 @@ const Player = () => {
         toast.error(data.message)
       }
     } catch (error) {
+      if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled') {
+        return;
+      }
       toast.error(error.message)
     }
   }
@@ -83,6 +90,9 @@ const Player = () => {
         toast.error(data.message)
       }
     } catch (error) {
+      if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled') {
+        return;
+      }
       toast.error(error.message)
     }
   }
@@ -185,7 +195,8 @@ const Player = () => {
           {playerData.lectureUrl ? (
             <div>
               <YouTube
-                videoId={playerData.lectureUrl.split("/").pop()}
+                videoId={getYouTubeVideoId(playerData.lectureUrl)}
+                opts={{ playerVars: { autoplay: 1 } }}
                 iframeClassName="w-full aspect-video"
               />
               <div className="flex justify-between items-center mt-1">

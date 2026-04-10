@@ -18,6 +18,9 @@ const MyCourses = () => {
       data.success && setCourses(data.courses)
 
     } catch (error) {
+      if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled' || window.isLoggingOut) {
+        return;
+      }
       toast.error(error.message)
     }
   }

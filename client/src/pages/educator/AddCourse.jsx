@@ -20,6 +20,7 @@ const AddCourse = () => {
   const [chapters, setChapters] = useState([]);
   const [showPopup, setShowPopup ] = useState(false);
   const [currentChapterId, setCurrentChapterId ] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [lectureDetails, setLectureDetails] = useState(
     {
@@ -58,27 +59,34 @@ const AddCourse = () => {
       setCurrentChapterId(chapterId);
       setShowPopup(true);
     } else if (action === 'remove'){
-      setChapters(
-        chapters.map((chapter) => {
-          if (chapter.chapterId === chapterId) {
-            chapter.chapterContent.splice(lectureIndex, 1);
-          }
-          return chapter;
-        })
+      setChapters((currentChapters) =>
+        currentChapters.map((chapter) =>
+          chapter.chapterId === chapterId
+            ? {
+                ...chapter,
+                chapterContent: chapter.chapterContent.filter((_, index) => index !== lectureIndex),
+              }
+            : chapter
+        )
       );
     }
   };
 
   const addLecture = () => {
-    setChapters (
-      chapters.map ((chapter) => {
+    if (!lectureDetails.lectureTitle.trim() || !lectureDetails.lectureDuration.trim() || !lectureDetails.lectureUrl.trim()) {
+      alert('All fields are required!');
+      return;
+    }
+
+    setChapters((currentChapters) =>
+      currentChapters.map((chapter) => {
         if (chapter.chapterId === currentChapterId) {
           const newLecture = {
             ...lectureDetails,
-            chapterOrder: chapter.chapterContent.length > 0 ? chapter.chapterContent.slice(-1)[0].lectureOrder + 1 : 1,
-            lectureId : uniqid()
+            lectureOrder: chapter.chapterContent.length > 0 ? chapter.chapterContent.slice(-1)[0].lectureOrder + 1 : 1,
+            lectureId: uniqid()
           };
-          chapter.chapterContent.push(newLecture);
+          return { ...chapter, chapterContent: [...chapter.chapterContent, newLecture] };
         }
         return chapter;
       })
@@ -95,9 +103,13 @@ const AddCourse = () => {
   const handleSubmit = async (e) => {
     try {
       e.preventDefault()
+      if (isSubmitting) return;
       if (!image) {
         toast.error('Thumbnail not selected')
+        return
       }
+
+      setIsSubmitting(true)
       const courseData = {
         courseTitle,
         courseDescription: quillRef.current.root.innerHTML,
@@ -126,7 +138,12 @@ const AddCourse = () => {
       }
 
     } catch (error) {
-      toast.error(error.message)
+      if (axios.isCancel(error) || error.code === 'ERR_CANCELED' || error.message === 'canceled' || window.isLoggingOut) {
+        return;
+      }
+      toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setIsSubmitting(false)
     }
     
   };
@@ -242,28 +259,7 @@ const AddCourse = () => {
                 <button 
                   type="button" 
                   className="w-full bg-blue-600 text-white px-4 py-2 rounded"
-                  onClick={() => {
-                    if (!lectureDetails.lectureTitle.trim() || !lectureDetails.lectureDuration.trim() ||           !lectureDetails.lectureUrl.trim()) {
-                      alert("All fields are required!");
-                      return;
-                    }
-          
-                    // Find the chapter and update its content
-                    setChapters(chapters.map(chapter => 
-                      chapter.chapterId === currentChapterId
-                        ? { ...chapter, chapterContent: [...chapter.chapterContent, lectureDetails] }
-                        : chapter
-                    ));
-          
-                    // Reset fields and close popup
-                    setLectureDetails({
-                      lectureTitle: '',
-                      lectureDuration: '',
-                      lectureUrl: '',
-                      isPreviewFree: false,
-                    });
-                    setShowPopup(false);
-                  }}
+                  onClick={addLecture}
                 >
                   Add
                 </button>
@@ -274,7 +270,7 @@ const AddCourse = () => {
             </div>
           )}
         </div>
-        <button type="submit" className="bg-black text-white w-max py-2.5 px-8 rounded my-4">ADD</button>
+        <button type="submit" disabled={isSubmitting} className="bg-black text-white w-max py-2.5 px-8 rounded my-4 disabled:opacity-60 disabled:cursor-not-allowed">{isSubmitting ? 'ADDING...' : 'ADD'}</button>
       </form>
     </div>
   );

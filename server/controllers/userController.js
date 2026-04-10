@@ -8,6 +8,46 @@ import { config } from "dotenv";
 
 config();
 
+const completePurchaseEnrollment = async ({ purchaseId, stripeSessionId }) => {
+  const purchase = await Purchase.findById(purchaseId);
+  if (!purchase) {
+    throw new Error("Purchase not found");
+  }
+
+  const user = await User.findById(purchase.userId);
+  const course = await Course.findById(purchase.courseId);
+
+  if (!user || !course) {
+    throw new Error("User or course not found");
+  }
+
+  const courseIdStr = course._id.toString();
+  const userIdStr = user._id.toString();
+
+  if (!user.enrolledCourses.some((id) => id.toString() === courseIdStr)) {
+    user.enrolledCourses.push(course._id);
+    await user.save();
+  }
+
+  if (!course.enrolledStudents.some((id) => id.toString() === userIdStr)) {
+    course.enrolledStudents.push(user._id);
+    await course.save();
+  }
+
+  if (purchase.status !== "completed") {
+    purchase.status = "completed";
+    purchase.completedAt = new Date();
+  }
+
+  if (stripeSessionId) {
+    purchase.stripeSessionId = stripeSessionId;
+  }
+
+  await purchase.save();
+
+  return purchase;
+};
+
 // Register user
 export const register = async (req, res) => {
   try {
@@ -149,11 +189,20 @@ export const purchaseCourse = async (req, res) => {
     const purchaseData = {
       courseId: courseData._id,
       userId,
-      amount: (
+      amount: Number((
         courseData.coursePrice -
         (courseData.discount * courseData.coursePrice) / 100
-      ).toFixed(2),
+      ).toFixed(2)),
     };
+
+    const minimumStripeCharge = process.env.CURRENCY?.toLowerCase() === 'lkr' ? 125 : 1;
+
+    if (purchaseData.amount < minimumStripeCharge) {
+      return res.status(400).json({
+        success: false,
+        message: `The course price after discount must be at least ${process.env.CURRENCY?.toUpperCase() || 'USD'} ${minimumStripeCharge} to complete checkout. Please increase the price or reduce the discount.`,
+      });
+    }
 
     const newPurchase = await Purchase.create(purchaseData);
 
@@ -169,14 +218,14 @@ export const purchaseCourse = async (req, res) => {
           product_data: {
             name: courseData.courseTitle,
           },
-          unit_amount: Math.floor(newPurchase.amount) * 100,
+          unit_amount: Math.round(newPurchase.amount * 100),
         },
         quantity: 1,
       },
     ];
 
     const session = await stripeInstance.checkout.sessions.create({
-      success_url: `${origin}/course/${courseId}?payment_success=true`,
+      success_url: `${origin}/course/${courseId}?payment_success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/course/${courseId}?payment_cancelled=true`,
       line_items: line_items,
       mode: "payment",
@@ -187,9 +236,51 @@ export const purchaseCourse = async (req, res) => {
       },
     });
 
+    newPurchase.stripeSessionId = session.id;
+    await newPurchase.save();
+
     res.json({ success: true, session_url: session.url });
   } catch (error) {
     res.json({ success: false, message: error.message });
+  }
+};
+
+// Verify payment and finalize enrollment (fallback when webhook is delayed)
+export const verifyPayment = async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+      return res.status(400).json({ success: false, message: "Session id is required" });
+    }
+
+    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const session = await stripeInstance.checkout.sessions.retrieve(sessionId);
+
+    if (!session || session.payment_status !== "paid") {
+      return res.status(400).json({
+        success: false,
+        message: "Payment is not completed yet. Please wait a moment and try again.",
+      });
+    }
+
+    const purchaseId = session.metadata?.purchaseId;
+    if (!purchaseId) {
+      return res.status(400).json({ success: false, message: "Invalid payment metadata" });
+    }
+
+    const purchase = await completePurchaseEnrollment({
+      purchaseId,
+      stripeSessionId: session.id,
+    });
+
+    res.json({
+      success: true,
+      message: "Enrollment updated successfully",
+      purchaseId: purchase._id,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

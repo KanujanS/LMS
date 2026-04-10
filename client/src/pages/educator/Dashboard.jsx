@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/student/Loading'
 import api from '../../utils/api'
-import { toast } from 'react-hot-toast'
 import { BsPersonSquare } from "react-icons/bs";
 import { GiMoneyStack } from "react-icons/gi";
 import { SiDiscourse } from "react-icons/si";
@@ -34,27 +33,18 @@ const Dashboard = () => {
           toast.error(response.data.message || 'Failed to fetch dashboard data');
         }
       } catch (error) {
-        console.error('Dashboard error:', error);
-        // Check if it's a network error
-        if (!error.response) {
-          toast.error('Network error. Please check your connection.');
+        if (error.code === 'ERR_CANCELED' || error.message === 'canceled' || window.isLoggingOut) {
           return;
         }
-        
-        // Handle specific error cases
-        if (error.response.status === 401) {
-          toast.error('Session expired. Please login again.');
+        console.error('Dashboard error:', error);
+        if (error.response?.status === 401) {
           navigate('/login');
           return;
         }
-        
-        if (error.response.status === 403) {
-          toast.error('You need educator access for this page');
+        if (error.response?.status === 403) {
           navigate('/');
           return;
         }
-        
-        toast.error(error.response?.data?.message || 'Failed to load dashboard data');
       } finally {
         setLoading(false);
       }
