@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/student/Loading'
 import api from '../../utils/api'
+import { toast } from 'react-hot-toast'
 import { BsPersonSquare } from "react-icons/bs";
 import { GiMoneyStack } from "react-icons/gi";
 import { SiDiscourse } from "react-icons/si";
@@ -19,17 +20,15 @@ const Dashboard = () => {
       try {
         setLoading(true);
         const response = await api.get('/api/educator/dashboard');
-        console.log('Dashboard response:', response.data); // Debug log
         
         if (response.data.success) {
-          const dashboardData = response.data.data || {};
+          const dashboardData = response.data.dashboardData || {};
           setDashboardData({
-            enrolledStudentsData: dashboardData.enrolledStudents || [],
+            enrolledStudentsData: dashboardData.enrolledStudentsData || [],
             totalCourses: dashboardData.totalCourses || 0,
             totalEarnings: dashboardData.totalEarnings || 0
           });
         } else {
-          console.error('API Error:', response.data);
           toast.error(response.data.message || 'Failed to fetch dashboard data');
         }
       } catch (error) {
@@ -103,10 +102,10 @@ const Dashboard = () => {
                   <tr key={index} className='border-b border-gray-500/20'>
                     <td className='px-4 py-3 text-center hidden sm:table-cell'>{index + 1}</td>
                     <td className='md:px-4 px-2 py-3 flex items-center space-x-3'>
-                      <img src={item.student.imageUrl} alt='profile' className='w-9 h-9 rounded-full'/>
-                      <span className='truncate'>{item.student.name}</span>
+                      <img src={item.student?.imageUrl || 'https://www.gravatar.com/avatar/?d=mp'} alt='profile' className='w-9 h-9 rounded-full'/>
+                      <span className='truncate'>{item.student?.name || 'Unknown Student'}</span>
                     </td>
-                    <td className='px-4 py-3 truncate'>{item.courseTitle}</td>
+                    <td className='px-4 py-3 truncate'>{item.courseTitle || 'Unknown Course'}</td>
                   </tr>
                 ))}
               </tbody>

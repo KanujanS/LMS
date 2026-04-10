@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-import { dummyStudentEnrolled } from "../../assets/assets";
 import Loading from "../../components/student/Loading";
 import { AppContext } from "../../context/AppContext";
 import axios from "axios";
@@ -13,9 +12,13 @@ const StudentsEnrolled = () => {
   const fetchEnrolledStudents = async () => {
     try {
       const token = await getToken()
+      if (!token) {
+        return;
+      }
+
       const { data } = await axios.get(backendUrl + '/api/educator/enrolled-students', {headers: {Authorization: `Bearer ${token}`}})
       if (data.success) {
-        setEnrolledStudents(data.enrolledStudents.reverse())
+        setEnrolledStudents((data.enrolledStudents || []).reverse())
       } else {
         toast.error(data.message)
       }
@@ -51,11 +54,11 @@ const StudentsEnrolled = () => {
               <tr key={index} className="border-b border-gray-500/20">
                 <td className="px-4 py-3 text-center hidden sm:table-cell">{index + 1}</td>
                 <td className="md:px-4 px-2 py-3 flex items-center space-x-3">
-                  <img src={item.student.imageUrl} alt="Student Image" className="w-9 h-9 rounded-full"/>
-                  <span className="truncate">{item.student.name}</span>
+                  <img src={item.student?.imageUrl || 'https://www.gravatar.com/avatar/?d=mp'} alt="Student Image" className="w-9 h-9 rounded-full"/>
+                  <span className="truncate">{item.student?.name || item.studentName || 'Unknown Student'}</span>
                 </td>
-                <td className="px-4 py-3 truncate">{item.courseTitle}</td>
-                <td className="px-4 py-3 hidden sm:table-cell">{new Date(item.purchaseDate).toLocaleDateString()}</td>
+                <td className="px-4 py-3 truncate">{item.courseTitle || item.courseName || 'Unknown Course'}</td>
+                <td className="px-4 py-3 hidden sm:table-cell">{item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString() : '-'}</td>
               </tr>
             ))}
           </tbody>

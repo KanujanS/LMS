@@ -165,20 +165,36 @@ export const getEnrolledStudentsData = async (req, res) => {
   try {
     const educatorId = req.user._id;
     const courses = await Course.find({ educator: educatorId });
+
+    if (courses.length === 0) {
+      return res.json({
+        success: true,
+        enrolledStudents: [],
+        totalStudents: 0,
+        totalRevenue: 0,
+      });
+    }
+
     const purchases = await Purchase.find({
       courseId: { $in: courses.map(course => course._id) },
       status: 'completed'
     })
-      .populate('userId', 'name email')
-      .populate('courseId', 'courseTitle price');
+      .populate('userId', 'name email imageUrl')
+      .populate('courseId', 'courseTitle coursePrice');
 
-    const enrolledStudents = purchases.map((purchase) => ({
-      studentName: purchase.userId.name,
-      studentEmail: purchase.userId.email,
-      courseName: purchase.courseId.courseTitle,
-      purchaseDate: purchase.createdAt,
-      amount: purchase.courseId.price,
-    }));
+    const enrolledStudents = purchases
+      .filter((purchase) => purchase.userId && purchase.courseId)
+      .map((purchase) => ({
+        student: {
+          _id: purchase.userId._id,
+          name: purchase.userId.name,
+          email: purchase.userId.email,
+          imageUrl: purchase.userId.imageUrl,
+        },
+        courseTitle: purchase.courseId.courseTitle,
+        purchaseDate: purchase.createdAt,
+        amount: purchase.amount,
+      }));
 
     res.json({
       success: true,
