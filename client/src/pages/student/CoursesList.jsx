@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { AppContext } from "../../context/AppContext";
-import SearchBar from "../../components/student/Searchbar";
+import SearchBar from "../../components/student/SearchBar";
 import { useParams, useNavigate } from "react-router-dom";
 import CourseCard from "../../components/student/CourseCard";
 import { assets } from "../../assets/assets";

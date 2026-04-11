@@ -1,6 +1,6 @@
 import React from "react";
 import { assets } from "../../assets/assets";
-import SearchBar from "./Searchbar";
+import SearchBar from "./SearchBar";
 
 const Hero = () => {
   return (
