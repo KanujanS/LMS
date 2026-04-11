@@ -1,12 +1,15 @@
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-// Get the backend URL from environment or default to localhost
+// Get backend URL only from .env
 const getBackendUrl = () => {
-  if (import.meta && import.meta.env && import.meta.env.VITE_BACKEND_URL) {
-    return import.meta.env.VITE_BACKEND_URL;
+  const envUrl = import.meta.env.VITE_BACKEND_URL;
+
+  if (!envUrl) {
+    throw new Error("VITE_BACKEND_URL is not defined in .env file");
   }
-  return 'http://localhost:5001';
+
+  return envUrl.replace(/\/$/, '');
 };
 
 const api = axios.create({
