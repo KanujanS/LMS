@@ -24,12 +24,7 @@ try {
 }
 
 // Middlewares
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173', // Vite's default port
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors());
 
 // Parse raw body for Stripe webhook route - must be before JSON parser
 app.post('/api/webhook/stripe', express.raw({ type: 'application/json' }), stripeWebhooks);
