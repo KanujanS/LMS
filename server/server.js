@@ -24,7 +24,13 @@ try {
 }
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://learngate-frontend.vercel.app"
+  ],
+  credentials: true
+}));
 
 // Parse raw body for Stripe webhook route - must be before JSON parser
 app.post('/api/webhook/stripe', express.raw({ type: 'application/json' }), stripeWebhooks);
